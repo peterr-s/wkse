@@ -3,18 +3,8 @@
 #include <time.h>
 #include <stdbool.h>
 #include <limits.h>
+#include "shortcut.h"
 
-// for storing shortcuts
-typedef struct shortcut shortcut;
-struct shortcut
-{
-	unsigned int ccode;
-	bool shift;
-	unsigned int* keys;
-	unsigned int key_ct;
-};
-
-struct shortcut* append_to_array(shortcut shortcuts[], unsigned int l, shortcut* new_element);
 unsigned int* extend_keylist(unsigned int keys[], unsigned int l, unsigned int n_key);
 bool all_pressed(unsigned int keys[], unsigned int l);
 
@@ -53,7 +43,7 @@ int main(int argc, char* argv[])
 
 	// read shortcuts
 	shortcut* shortcuts = NULL;
-	unsigned int action_keys[] = NULL;
+	unsigned int* action_keys = NULL;
 	unsigned int shortcut_ct = 0,
 		ak_ct = 0;
 	FILE* config = fopen(path, "r");
