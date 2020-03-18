@@ -4,11 +4,12 @@
 #include <stdbool.h>
 #include <limits.h>
 #include "shortcut.h"
+#include <limits.h>
 
 unsigned int* extend_keylist(unsigned int keys[], unsigned int l, unsigned int n_key);
 bool all_pressed(unsigned int keys[], unsigned int l);
 
-const short int high_bitmask = 1 << (sizeof(short int) * CHAR_BIT);
+const SHORT high_bitmask = 0x8000;
 
 int main(int argc, char* argv[])
 {
@@ -43,7 +44,7 @@ int main(int argc, char* argv[])
 
 	// read shortcuts
 	shortcut* shortcuts = NULL;
-	unsigned int* action_keys = NULL;
+	unsigned int* action_keys = malloc(1);
 	unsigned int shortcut_ct = 0,
 		ak_ct = 0;
 	FILE* config = fopen(path, "r");
@@ -55,9 +56,11 @@ int main(int argc, char* argv[])
 
 		else if (line[0] == 'A')
 		{
-			char temp[4];
+			char* temp = calloc(4, sizeof(char));
 			strncpy(temp, &line[2], 3);
-			extend_keylist(action_keys, ak_ct, atoi(temp));
+			action_keys = extend_keylist(action_keys, ak_ct, atoi(temp));
+			ak_ct++;
+			free(temp);
 		}
 
 		else
@@ -74,10 +77,13 @@ int main(int argc, char* argv[])
 			nshortcut.shift = atoi(temp);
 
 			nshortcut.key_ct = 0;
+			nshortcut.keys = malloc(1);
 			strncpy(temp, &line[7], 3);
-			for (unsigned short int i = 11; !strchr(temp, '.'); i += 4)
+			temp[3] = '\0';
+			for (unsigned short int i = 11; (line + i - 3) < strchr(line, '.'); i += 4)
 			{
 				nshortcut.keys = extend_keylist(nshortcut.keys, nshortcut.key_ct, atoi(temp));
+				nshortcut.key_ct++;
 				strncpy(temp, &line[i], 3);
 			}
 
@@ -113,7 +119,7 @@ int main(int argc, char* argv[])
 				active = true;
 			}
 
-			bool shift = GetKeyState(VK_SHIFT) ^ GetKeyState(VK_CAPITAL);
+			bool shift = ((GetKeyState(VK_SHIFT) & high_bitmask) ? 1 : 0) ^ (GetKeyState(VK_CAPITAL) & (SHORT)1);
 
 			for (unsigned short int i = 0; i < shortcut_ct; i++) // go through shortcuts, check if any are active
 				if (shortcuts[i].shift == shift && all_pressed(shortcuts[i].keys, shortcuts[i].key_ct))
@@ -168,18 +174,22 @@ struct shortcut* append_to_array(shortcut shortcuts[], unsigned int l, shortcut*
 
 unsigned int* extend_keylist(unsigned int keys[], unsigned int l, unsigned int n_key)
 {
+	realloc(keys, sizeof(unsigned int) * (l + 1));
+	keys[l] = n_key;
+	return keys;
+	/*
 	unsigned int* arr = malloc(sizeof(unsigned int) * (l + 1));
 	memcpy(arr, keys, sizeof(unsigned int) * l);
 	arr[l] = n_key;
 
 	free(keys);
 
-	return arr;
+	return arr;/**/
 }
 
 bool all_pressed(unsigned int keys[], unsigned int l)
 {
-	for (unsigned int i = 0; i < l; i++) if (!GetKeyState(keys[i]) & high_bitmask)
+	for (unsigned int i = 0; i < l; i++) if (!(GetKeyState(keys[i]) & high_bitmask))
 		return false;
 
 	return true;
