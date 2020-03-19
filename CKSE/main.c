@@ -163,28 +163,16 @@ int main(int argc, char* argv[])
 
 struct shortcut* append_to_array(shortcut shortcuts[], unsigned int l, shortcut* new_element)
 {
-	shortcut* arr = malloc(sizeof(shortcut) * (l + 1));
-	memcpy(arr, shortcuts, sizeof(shortcut) * l);
-	arr[l] = *new_element;
-
-	free(shortcuts);
-
-	return arr;
+	shortcuts = realloc(shortcuts, sizeof(shortcut) * (l + 1));
+	shortcuts[l] = *new_element;
+	return shortcuts;
 }
 
 unsigned int* extend_keylist(unsigned int keys[], unsigned int l, unsigned int n_key)
 {
-	realloc(keys, sizeof(unsigned int) * (l + 1));
+	keys = realloc(keys, sizeof(unsigned int) * (l + 1));
 	keys[l] = n_key;
 	return keys;
-	/*
-	unsigned int* arr = malloc(sizeof(unsigned int) * (l + 1));
-	memcpy(arr, keys, sizeof(unsigned int) * l);
-	arr[l] = n_key;
-
-	free(keys);
-
-	return arr;/**/
 }
 
 bool all_pressed(unsigned int keys[], unsigned int l)
